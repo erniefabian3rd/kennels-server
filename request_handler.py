@@ -38,9 +38,8 @@ class HandleRequests(BaseHTTPRequestHandler):
     def do_GET(self):
         """Handles GET requests to the server
         """
-        # Set the response code to 'Ok'
-        self._set_headers(200)
-        response = {}  # Default response
+        # Set the response to an empty bracket
+        response = {} # Default response
 
         # Parse the URL and capture the tuple that is returned
         (resource, id) = self.parse_url(self.path)
@@ -51,25 +50,50 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "animals":
             if id is not None:
                 response = get_single_animal(id)
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = { "message": f"Animal {id} is out playing right now" }
             else:
+                self._set_headers(200)
                 response = get_all_animals()
+
 
         if resource == "locations":
             if id is not None:
                 response = get_single_location(id)
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = { "message": f"Location {id} is under construction" }
             else:
+                self._set_headers(200)
                 response = get_all_locations()
 
         if resource == "employees":
             if id is not None:
                 response = get_single_employee(id)
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = { "message": f"Employee {id} is taking the day off" }
             else:
+                self._set_headers(200)
                 response = get_all_employees()
 
         if resource == "customers":
             if id is not None:
                 response = get_single_customer(id)
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = { "message": f"Customer {id} is on vacation with their family" }
             else:
+                self._set_headers(200)
                 response = get_all_customers()
 
         # Send a JSON formatted string as a response
@@ -79,7 +103,6 @@ class HandleRequests(BaseHTTPRequestHandler):
     # It handles any POST request.
     def do_POST(self):
         """Handles POST requests to the server"""
-        self._set_headers(201)
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
 
@@ -98,20 +121,48 @@ class HandleRequests(BaseHTTPRequestHandler):
         # the orange squiggle, you'll define the create_animal
         # function next.
         if resource == "animals":
-            new_animal = create_animal(post_body)
+            if "name" in post_body and "species" in post_body and "locationId" in post_body and "customerId" in post_body and "status" in post_body:
+                self._set_headers(201)
+                new_animal = create_animal(post_body)
+            else:
+                self._set_headers(400)
+                new_animal = {
+                    "message": f'{"name is required" if "name" not in post_body else ""} {"species is required" if "species" not in post_body else ""} {"locationId is required" if "locationId" not in post_body else ""} {"customerId is required" if "customerId" not in post_body else ""} {"status is required" if "status" not in post_body else ""}'
+                }
         # Encode the new animal and send in response
             self.wfile.write(json.dumps(new_animal).encode())
 
         if resource == "locations":
-            new_location = create_location(post_body)
+            if "name" in post_body and "address" in post_body:
+                self._set_headers(201)
+                new_location = create_location(post_body)
+            else:
+                self._set_headers(400)
+                new_location = {
+                    "message": f'{"name is required" if "name" not in post_body else ""} {"address is required" if "address" not in post_body else ""}'
+                }
             self.wfile.write(json.dumps(new_location).encode())
 
         if resource == "employees":
-            new_employee = create_employee(post_body)
+            if "name" in post_body:
+                self._set_headers(201)
+                new_employee = create_employee(post_body)
+            else:
+                self._set_headers(400)
+                new_employee = {
+                    "message": f'{"name is required" if "name" not in post_body else ""}'
+                }
             self.wfile.write(json.dumps(new_employee).encode())
 
         if resource == "customers":
-            new_customer = create_customer(post_body)
+            if "email" in post_body and "fullName" in post_body:
+                self._set_headers(201)
+                new_customer = create_customer(post_body)
+            else:
+                self._set_headers(400)
+                new_customer = {
+                    "message": f'{"email is required" if "email" not in post_body else ""} {"full name is required" if "fullName" not in post_body else ""}'
+                }
             self.wfile.write(json.dumps(new_customer).encode())
 
     # A method that handles any PUT request.
@@ -166,24 +217,30 @@ class HandleRequests(BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         """Handles DELETE requests to the server"""
-        # Set a 204 response code
-        self._set_headers(204)
 
+        delete_customer_message = None
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
 
         # Delete a single animal/location/employee/customer from the list
         if resource == "animals":
+            self._set_headers(204)
             delete_animal(id)
 
         if resource == "locations":
+            self._set_headers(204)
             delete_location(id)
 
         if resource == "employees":
+            self._set_headers(204)
             delete_employee(id)
 
         if resource == "customers":
-            delete_customer(id)
+            self._set_headers(405)
+            delete_customer_message = {
+                "message": f'{"Deleting customers requires contacting the company directly."}'
+            }
+            self.wfile.write(json.dumps(delete_customer_message).encode())
 
         # Encode the new animal/location/employee/customer and send in response
         self.wfile.write("".encode())
