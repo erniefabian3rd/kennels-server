@@ -1,11 +1,12 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
-            "name": "Request Handler",
+            "name": "Server",
             "type": "python",
             "request": "launch",
-            "program": "./request_handler.py",
+            "program": "./server.py",
             "console": "integratedTerminal",
             "autoReload": {
                 "enable": true
