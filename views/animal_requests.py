@@ -155,7 +155,7 @@ def get_animals_by_status(status):
 
         # Write the SQL query to get the information you want
         db_cursor.execute("""
-        select
+        SELECT
             c.id,
             c.name,
             c.breed,
