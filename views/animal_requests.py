@@ -29,7 +29,7 @@ ANIMALS = [
     }
 ]
 
-def get_all_animals():
+def get_all_animals(query_params):
     """Gets all animals"""
     # Open a connection to the database
     with sqlite3.connect("./kennel.sqlite3") as conn:
@@ -38,27 +38,53 @@ def get_all_animals():
         conn.row_factory = sqlite3.Row
         db_cursor = conn.cursor()
 
+        sort_by = ""
+        where_clause = ""
+
+        if len(query_params) != 0:
+            param = query_params[0]
+            [qs_key, qs_value] = param.split("=")
+
+            if qs_key == "_sortBy":
+                if qs_value == 'location':
+                    sort_by = "ORDER BY a.location_id"
+                if qs_value == 'customer':
+                    sort_by = "ORDER BY a.customer_id"
+                if qs_value == 'status':
+                    sort_by = "ORDER BY a.status"
+            
+            if qs_key == 'locationId':
+                where_clause = f"WHERE a.location_id = {qs_value}"
+            elif qs_key == 'status':
+                where_clause = f"WHERE a.status = '{qs_value}'"
+
+        sql_to_execute = f"""
+            SELECT
+                a.id,
+                a.name,
+                a.breed,
+                a.status,
+                a.location_id,
+                a.customer_id,
+                l.name location_name,
+                l.address location_address,
+                COUNT(a.id) animals,
+                c.name customer_name,
+                c.address customer_address,
+                c.email customer_email,
+                c.password customer_password
+            FROM Animal a
+            JOIN Location l
+                ON l.id = a.location_id
+            JOIN Customer c
+                ON c.id = a.customer_id
+            {where_clause}
+            {sort_by}
+            GROUP BY a.id"""
+
+
         # Write the SQL query to get the information you want
-        db_cursor.execute("""
-        SELECT
-            a.id,
-            a.name,
-            a.breed,
-            a.status,
-            a.location_id,
-            a.customer_id,
-            l.name location_name,
-            l.address location_address,
-            c.name customer_name,
-            c.address customer_address,
-            c.email customer_email,
-            c.password customer_password
-        FROM Animal a
-        JOIN Location l
-            ON l.id = a.location_id
-        JOIN Customer c
-            ON c.id = a.customer_id
-        """)
+        db_cursor.execute(sql_to_execute)
 
         # Initialize an empty list to hold all animal representations
         animals = []
@@ -74,7 +100,7 @@ def get_all_animals():
                             row['location_id'], row['customer_id'])
 
             # Create a Location instance from the current row
-            location = Location(row['id'], row['location_name'], row['location_address'])
+            location = Location(row['id'], row['location_name'], row['location_address'], row['animals'])
 
             # Create a Customer instance from the current row
             customer = Customer(row['id'], row['customer_name'], row['customer_address'], row['customer_email'], row['customer_password'])

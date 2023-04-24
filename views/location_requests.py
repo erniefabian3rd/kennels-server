@@ -26,10 +26,14 @@ def get_all_locations():
         # Write the SQL query to get the information you want
         db_cursor.execute("""
         SELECT
-            a.id,
-            a.name,
-            a.address
-        FROM location a
+            l.id,
+            l.name,
+            l.address,
+            COUNT(a.id) AS animals
+        FROM Location l
+        JOIN Animal a
+            ON l.id = a.location_id
+        GROUP BY a.location_id
         """)
 
         # Initialize an empty list to hold all location representations
@@ -45,7 +49,7 @@ def get_all_locations():
             # Note that the database fields are specified in
             # exact order of the parameters defined in the
             # Location class above.
-            location = Location(row['id'], row['name'], row['address'])
+            location = Location(row['id'], row['name'], row['address'], row['animals'])
 
             locations.append(location.__dict__)
 
@@ -61,18 +65,19 @@ def get_single_location(id):
         # into the SQL statement.
         db_cursor.execute("""
         SELECT
-            a.id,
-            a.name,
-            a.address
-        FROM location a
-        WHERE a.id = ?
+            l.id,
+            l.name,
+            l.address,
+            COUNT(a.id) AS animals
+        FROM location l
+        WHERE l.id = ?
         """, ( id, ))
 
         # Load the single result into memory
         data = db_cursor.fetchone()
 
         # Create a location instance from the current row
-        location = Location(data['id'], data['name'], data['address'])
+        location = Location(data['id'], data['name'], data['address'], data['animals'])
 
         return location.__dict__
 
