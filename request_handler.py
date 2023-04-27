@@ -62,7 +62,6 @@ class HandleRequests(BaseHTTPRequestHandler):
                     response = get_single_animal(id)
                 else:
                     response = get_all_animals(query_params)
-                    print(query_params)
 
             if resource == "locations":
                 if id is not None:
