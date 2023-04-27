@@ -1,6 +1,6 @@
 import sqlite3
 import json
-from models import Employee, Location
+from models import Employee, Location, Animal
 
 EMPLOYEES = [
     {
@@ -67,22 +67,59 @@ def get_single_employee(id):
         # into the SQL statement.
         db_cursor.execute("""
         SELECT
-            a.id,
-            a.name,
-            a.address,
-            a.location_id
-        FROM employee a
-        WHERE a.id = ?
+            e.id,
+            e.name,
+            e.address,
+            e.location_id,
+            l.name location_name,
+            l.address location_address,
+            a.id animal_id,
+            a.name animal_name,
+            a.status animal_status,
+            a.breed animal_breed,
+            a.location_id animal_location_id
+        FROM Employee e
+        JOIN Location l
+            ON l.id = e.location_id
+        LEFT JOIN EmployeeAnimal ea
+            ON e.id = ea.employee_id
+        LEFT JOIN Animal a
+            ON ea.animal_id = a.id
+        WHERE e.id = ?
         """, ( id, ))
 
-        # Load the single result into memory
-        data = db_cursor.fetchone()
+        assigned_animals = []
+        employee = None
+
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            if employee is None:
+                employee = Employee(row['id'], row['name'], row['address'],
+                                    row['location_id'])
+                location = Location(row['id'], row['location_name'], row['location_address'])
+                employee.location = location.__dict__
+                assigned_animals.append(employee.__dict__)
+
+                if row['animal_id'] is not None:
+                    animal = Animal(row['animal_id'], row['animal_name'], row['animal_status'],
+                                    row['animal_breed'], row['animal_location_id'])
+                    employee.animal = [animal.__dict__]
+            else:
+                new_animal = Animal(row['animal_id'], row['animal_name'], row['animal_status'],
+                                    row['animal_breed'], row['animal_location_id'])
+                employee.animal.append(new_animal.__dict__)
+
+
+        # # Load the single result into memory
+        # data = db_cursor.fetchone()
+        # print(data)
 
         # Create an employee instance from the current row
-        employee = Employee(data['id'], data['name'], data['address'],
-                            data['location_id'])
+        # employee = Employee(data['id'], data['name'], data['address'],
+        #                     data['location_id'])
 
-        return employee.__dict__
+        return assigned_animals
 
 def get_employees_by_location(location_id):
     """Gets employees by location"""

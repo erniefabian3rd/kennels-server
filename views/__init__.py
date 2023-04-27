@@ -22,3 +22,5 @@ from .customer_requests import (get_all_customers,
                                 create_customer,
                                 delete_customer,
                                 update_customer)
+from .employee_animal_requests import (get_all_employee_animals,
+                                get_single_employee_animal)

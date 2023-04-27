@@ -33,6 +33,14 @@ CREATE TABLE `Employee` (
 
 );
 
+CREATE TABLE `EmployeeAnimal` (
+	`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	`employee_id`	INTEGER NOT NULL,
+	`animal_id`	INTEGER NOT NULL,
+	FOREIGN KEY(`employee_id`) REFERENCES `Employee`(`id`),
+	FOREIGN KEY(`animal_id`) REFERENCES `Animal`(`id`)
+);
+
 INSERT INTO `Location` VALUES (null, 'Nashville North', "64 Washington Heights");
 INSERT INTO `Location` VALUES (null, 'Nashville South', "101 Penn Ave");
 
@@ -55,6 +63,12 @@ INSERT INTO `Employee` VALUES (null, "Kristen Norris", "100 Main St", 1);
 INSERT INTO `Employee` VALUES (null, "Meg Ducharme", "404 Unknown Ct", 2);
 INSERT INTO `Employee` VALUES (null, "Hannah Hall", "204 Empty Ave", 1);
 INSERT INTO `Employee` VALUES (null, "Leah Hoefling", "200 Success Way", 2);
+
+INSERT INTO `EmployeeAnimal` VALUES (null, 1, 1);
+INSERT INTO `EmployeeAnimal` VALUES (null, 2, 3);
+INSERT INTO `EmployeeAnimal` VALUES (null, 3, 2);
+INSERT INTO `EmployeeAnimal` VALUES (null, 4, 5);
+INSERT INTO `EmployeeAnimal` VALUES (null, 1, 5);
 
 -- Get only the animal rows where the `id` field value is 8
 SELECT
@@ -142,3 +156,39 @@ JOIN Location l
 SELECT * FROM Animal ORDER BY id DESC;
 
 INSERT INTO `Employee` VALUES (null, "Dylan Kline", "1234 Nashville Way", 1);
+
+SELECT
+    a.id,
+    a.name,
+    a.breed,
+    a.status,
+    a.location_id,
+    a.customer_id,
+    l.name location_name,
+    l.address location_address,
+    c.name customer_name,
+    c.address customer_address,
+    c.email customer_email,
+    c.password customer_password
+FROM Animal a
+JOIN Location l
+    ON l.id = a.location_id
+JOIN Customer c
+    ON c.id = a.customer_id
+
+SELECT
+    e.id,
+    e.name,
+    e.address,
+    e.location_id,
+    a.id animal_id,
+    a.name animal_name,
+    a.status animal_status,
+    a.breed animal_breed,
+    a.location_id animal_location_id
+FROM Employee e
+LEFT JOIN EmployeeAnimal ea
+    ON e.id = ea.employee_id
+LEFT JOIN Animal a
+    ON ea.animal_id = a.id
+WHERE e.id = 1

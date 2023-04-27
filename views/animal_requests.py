@@ -52,6 +52,8 @@ def get_all_animals(query_params):
                     sort_by = "ORDER BY a.customer_id"
                 if qs_value == 'status':
                     sort_by = "ORDER BY a.status"
+                if qs_value == 'name':
+                    sort_by = "ORDER BY a.name"
             
             if qs_key == 'locationId':
                 where_clause = f"WHERE a.location_id = {qs_value}"
@@ -68,7 +70,6 @@ def get_all_animals(query_params):
                 a.customer_id,
                 l.name location_name,
                 l.address location_address,
-                COUNT(a.id) animals,
                 c.name customer_name,
                 c.address customer_address,
                 c.email customer_email,
@@ -79,8 +80,7 @@ def get_all_animals(query_params):
             JOIN Customer c
                 ON c.id = a.customer_id
             {where_clause}
-            {sort_by}
-            GROUP BY a.id"""
+            {sort_by}"""
 
 
         # Write the SQL query to get the information you want
@@ -100,7 +100,7 @@ def get_all_animals(query_params):
                             row['location_id'], row['customer_id'])
 
             # Create a Location instance from the current row
-            location = Location(row['id'], row['location_name'], row['location_address'], row['animals'])
+            location = Location(row['id'], row['location_name'], row['location_address'])
 
             # Create a Customer instance from the current row
             customer = Customer(row['id'], row['customer_name'], row['customer_address'], row['customer_email'], row['customer_password'])

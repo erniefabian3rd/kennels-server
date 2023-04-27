@@ -7,3 +7,4 @@ class Employee():
         self.address = address
         self.location_id = location_id
         self.location = None
+
